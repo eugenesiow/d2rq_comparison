@@ -1,0 +1,92 @@
+# D2RQ Namespace  
+@prefix d2rq:        <http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#> .
+# Namespace of the ontology
+@prefix : <http://iot.soton.ac.uk/smarthome/> .
+
+# Namespace of the mapping file; does not appear in mapped data
+@prefix map: <file:///Users/d2r/example.ttl#> .
+
+# Other namespaces
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ssn: <http://purl.oclc.org/NET/ssnx/ssn#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix iotsn: <http://iot.soton.ac.uk/smarthome/sensor#> .
+@prefix iot: <http://purl.oclc.org/NET/iot#> .
+
+map:Database1 a d2rq:Database;
+    d2rq:jdbcDSN "jdbc:h2:~/smarthome";
+    d2rq:jdbcDriver "org.h2.Driver";
+    d2rq:username "sa";
+    d2rq:password "";
+    d2rq:timestampColumn "ENVIRONMENT.TIMESTAMPUTC";
+    .
+# -----------------------------------------------
+# CREATE TABLE Conferences (ConfID int, Name text, Location text);
+
+map:WeatherSensorOutput a d2rq:ClassMap;
+    d2rq:dataStorage map:Database1;
+    d2rq:class :WeatherSensorOutput;
+    d2rq:uriPattern "http://iot.soton.ac.uk/smarthome/environment#snout@@ENVIRONMENT.ID@@";
+    .
+map:WeatherSensorOutputhasValue a d2rq:PropertyBridge;
+    d2rq:belongsToClassMap map:WeatherSensorOutput;
+    d2rq:property ssn:hasValue;
+    d2rq:refersToClassMap map:InternalTemperatureValue;
+    d2rq:join "ENVIRONMENT.ID => ENVIRONMENT.ID";
+    .
+map:InternalTemperatureValue a d2rq:ClassMap;
+    d2rq:dataStorage map:Database1;
+    d2rq:class iot:InternalTemperatureValue;
+    d2rq:uriPattern "http://iot.soton.ac.uk/smarthome/environment#intempval@@ENVIRONMENT.ID@@";
+    .
+map:insideTemp a d2rq:PropertyBridge;
+    d2rq:belongsToClassMap map:InternalTemperatureValue;
+    d2rq:property iot:hasQuantityValue;
+    d2rq:column "ENVIRONMENT.INSIDETEMP"; 
+    d2rq:datatype xsd:float;
+    .
+map:ExternalTemperatureValue a d2rq:ClassMap;
+    d2rq:dataStorage map:Database1;
+    d2rq:class iot:ExternalTemperatureValue;
+    d2rq:uriPattern "http://iot.soton.ac.uk/smarthome/environment#exttempval@@ENVIRONMENT.ID@@";
+    .
+map:outsideTemp a d2rq:PropertyBridge;
+    d2rq:belongsToClassMap map:ExternalTemperatureValue;
+    d2rq:property iot:hasQuantityValue;
+    d2rq:column "ENVIRONMENT.OUTSIDETEMP"; 
+    d2rq:datatype xsd:float;
+    .
+map:WeatherObservation a d2rq:ClassMap;
+    d2rq:dataStorage map:Database1;
+    d2rq:class iot:WeatherObservation;
+    d2rq:uriPattern "http://iot.soton.ac.uk/smarthome/environment#obs@@ENVIRONMENT.ID@@";
+    .
+map:WeatherObservationBy a d2rq:PropertyBridge;
+    d2rq:belongsToClassMap map:WeatherObservation;
+    d2rq:property ssn:observationResult;
+    d2rq:refersToClassMap map:WeatherSensorOutput;
+    d2rq:join "ENVIRONMENT.ID => ENVIRONMENT.ID";
+    .
+map:Time a d2rq:ClassMap;
+    d2rq:dataStorage map:Database1;
+    d2rq:class time:Instant;
+    d2rq:uriPattern "http://iot.soton.ac.uk/smarthome/environment#time@@ENVIRONMENT.ID@@";
+    .
+map:WeatherObservationTime a d2rq:PropertyBridge;
+    d2rq:belongsToClassMap map:WeatherObservation;
+    d2rq:property ssn:observationSamplingTime;
+    d2rq:refersToClassMap map:Time;
+    d2rq:join "ENVIRONMENT.ID => ENVIRONMENT.ID";
+    .
+map:TimeValue a d2rq:PropertyBridge;
+    d2rq:belongsToClassMap map:Time;
+    d2rq:property time:inXSDDateTime;
+    d2rq:column "ENVIRONMENT.TIMESTAMPUTC"; 
+    d2rq:datatype xsd:dateTime;
+    .
+map:WeatherObservationObservedBy a d2rq:PropertyBridge;
+    d2rq:belongsToClassMap map:WeatherObservation;
+    d2rq:property ssn:observedBy;
+    d2rq:constantValue <http://iot.soton.ac.uk/smarthome/sensor#environmental1>;
+    .
